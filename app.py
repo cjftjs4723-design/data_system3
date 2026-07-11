@@ -23,19 +23,35 @@ menu = st.tabs(["데이터 입력", "데이터 조회", "목표 설정"])
 
 # 1. 목표 설정 탭
 with menu[2]:
-    st.subheader("⚙️ 월별 목표 설정")
+    st.subheader("월별 목표 설정")
     target_month = st.text_input("목표를 설정할 월 (예: 2026-07)")
     goals = load_goals()
+    
     with st.form("goal_form"):
+        # 기존 목표 불러오기
         current_goals = goals[goals['월'] == target_month] if not goals.empty and '월' in goals.columns else pd.DataFrame()
+        
         new_goals = []
         for group in GROUP_ORDER:
-            val = current_goals[current_goals['회'] == group]['목표'].values[0] if not current_goals.empty and group in current_goals['회'].values else 0
-            new_goals.append(st.number_input(f"{group} 목표", value=int(val)))
+            # 해당 회의 목표값이 있으면 가져오고 없으면 0으로 초기화
+            val = 0
+            if not current_goals.empty and group in current_goals['회'].values:
+                val = int(current_goals[current_goals['회'] == group]['목표'].values[0])
+            new_goals.append(st.number_input(f"{group} 목표", value=val))
+            
         if st.form_submit_button("목표 저장"):
-            goals = goals[goals['월'] != target_month] if not goals.empty and '월' in goals.columns else pd.DataFrame(columns=['월', '회', '목표'])
+            # 기존 데이터에서 해당 월 데이터 삭제
+            if not goals.empty and '월' in goals.columns:
+                goals = goals[goals['월'] != target_month]
+            else:
+                goals = pd.DataFrame(columns=['월', '회', '목표'])
+            
+            # 새로운 목표 데이터프레임 생성
             new_df = pd.DataFrame({'월': [target_month]*len(GROUP_ORDER), '회': GROUP_ORDER, '목표': new_goals})
-            pd.concat([goals, new_df]).to_csv(GOAL_FILE, index=False)
+            
+            # 데이터 합치고 저장
+            updated_goals = pd.concat([goals, new_df], ignore_index=True)
+            updated_goals.to_csv(GOAL_FILE, index=False)
             st.success("목표가 저장되었습니다!")
 
 # 2. 데이터 입력 탭
