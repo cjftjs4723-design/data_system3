@@ -23,45 +23,21 @@ menu = st.tabs(["데이터 입력", "데이터 조회", "목표 설정"])
 
 # 1. 목표 설정 탭
 with menu[2]:
-    st.subheader("월별 목표 설정")
+    st.subheader("⚙️ 월별 목표 설정")
     target_month = st.text_input("목표를 설정할 월 (예: 2026-07)")
-    
-    # 목표 데이터 로드 (파일이 없으면 바로 빈 데이터프레임 생성)
-    if os.path.exists(GOAL_FILE):
-        try:
-            goals = pd.read_csv(GOAL_FILE)
-        except:
-            goals = pd.DataFrame(columns=['월', '회', '목표'])
-    else:
-        goals = pd.DataFrame(columns=['월', '회', '목표'])
-
+    goals = load_goals()
     with st.form("goal_form"):
-        # 기존 목표 불러오기 (데이터프레임 구조 보장)
         current_goals = goals[goals['월'] == target_month] if not goals.empty and '월' in goals.columns else pd.DataFrame()
-        
         new_goals = []
         for group in GROUP_ORDER:
-            val = 0
-            # 기존 데이터가 있으면 값 가져오기
-            if not current_goals.empty and group in current_goals['회'].values:
-                val = int(current_goals[current_goals['회'] == group]['목표'].values[0])
-            new_goals.append(st.number_input(f"{group} 목표", value=val))
-            
+            val = current_goals[current_goals['회'] == group]['목표'].values[0] if not current_goals.empty and group in current_goals['회'].values else 0
+            new_goals.append(st.number_input(f"{group} 목표", value=int(val)))
         if st.form_submit_button("목표 저장"):
-            # 입력 데이터 유효성 검사
-            if not target_month:
-                st.error("월을 입력해주세요.")
-            else:
-                # 데이터 업데이트 로직
-                new_df = pd.DataFrame({'월': [target_month]*len(GROUP_ORDER), '회': GROUP_ORDER, '목표': new_goals})
-                
-                # 기존 데이터 중 해당 월 삭제 후 병합
-                filtered_goals = goals[goals['월'] != target_month] if not goals.empty and '월' in goals.columns else pd.DataFrame(columns=['월', '회', '목표'])
-                updated_goals = pd.concat([filtered_goals, new_df], ignore_index=True)
-                
-                # 파일 저장
-                updated_goals.to_csv(GOAL_FILE, index=False)
-                st.success("목표가 저장되었습니다!")
+            goals = goals[goals['월'] != target_month] if not goals.empty and '월' in goals.columns else pd.DataFrame(columns=['월', '회', '목표'])
+            new_df = pd.DataFrame({'월': [target_month]*len(GROUP_ORDER), '회': GROUP_ORDER, '목표': new_goals})
+            pd.concat([goals, new_df]).to_csv(GOAL_FILE, index=False)
+            st.success("목표가 저장되었습니다!")
+
 # 2. 데이터 입력 탭
 with menu[0]:
     st.subheader("📝 데이터 입력/수정")
@@ -99,13 +75,19 @@ with menu[1]:
             df_f['재적대비 확답률(%)'] = (df_f['확답'] / df_f['재적'] * 100).fillna(0).round(2)
             
             # 표 표시 (월 컬럼 제외)
-            st.dataframe(df_f[['날짜', '회', '재적', '상담', '복음방', '확답', '목표대비 확답률(%)', '재적대비 확답률(%)']], use_container_width=True)
+            st.dataframe(df_f[['날짜', '회', '목표', '재적', '상담', '복음방', '확답', '목표대비 확답률(%)', '재적대비 확답률(%)']], use_container_width=True)
             
             # 그래프 표시
             st.write("### 부서별 확답 현황")
             chart = alt.Chart(df_f).mark_bar().encode(
                 x=alt.X('회', sort=GROUP_ORDER, axis=alt.Axis(labelAngle=0)),
-                y='확답', color='회'
+                # Y축 제목에 줄바꿈 추가 및 간격(titlePadding) 설정
+                y=alt.Y('목표대비 확답률(%)', 
+                        scale=alt.Scale(domain=[0, 100]), 
+                        axis=alt.Axis(title=['목표대비', '확답률(%)'], 
+                                      titleAngle=0, 
+                                      titlePadding=30)), # 숫자와 글자 간격 확보
+                color='회'
             ).properties(height=300)
             st.altair_chart(chart, use_container_width=True)
         else:
