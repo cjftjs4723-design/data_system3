@@ -8,24 +8,6 @@ DATA_FILE = "data_v2.csv"
 GOAL_FILE = "goals.csv"
 GROUP_ORDER = ["자문회", "장년회", "부녀회", "청년회", "대학부"]
 
-# 테마를 위한 밝은 디자인 CSS
-st.markdown("""
-    <style>
-    .stApp { background-color: #FFFFFF; color: #2C3E50; }
-    [data-testid="stSidebar"] { background-color: #F4F6F7; }
-    </style>
-    """, unsafe_allow_html=True)
-
-def load_data():
-    if os.path.exists(DATA_FILE): return pd.read_csv(DATA_FILE)
-    return pd.DataFrame(columns=['날짜', '회', '재적', '상담', '복음방', '확답'])
-
-def load_goals():
-    if os.path.exists(GOAL_FILE):
-        df = pd.read_csv(GOAL_FILE)
-        if '월' in df.columns: return df
-    return pd.DataFrame(columns=['월', '회', '목표'])
-
 st.set_page_config(layout="wide")
 
 st.markdown("""
