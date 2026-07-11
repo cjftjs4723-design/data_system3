@@ -18,6 +18,20 @@ def load_goals():
     return pd.DataFrame(columns=['월', '회', '목표'])
 
 st.set_page_config(layout="wide")
+# 밝은 테마 강제 적용을 위한 CSS 코드
+st.markdown("""
+    <style>
+    /* 전체 배경색을 흰색으로 변경 */
+    .stApp {
+        background-color: #FFFFFF;
+        color: #2C3E50;
+    }
+    /* 사이드바 등 기타 요소의 배경색도 밝게 유지 */
+    [data-testid="stSidebar"] {
+        background-color: #F4F6F7;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 st.title("📊 본부지역 전도관리 시스템")
 menu = st.tabs(["수치 입력", "조회", "월별 목표 설정"])
 
