@@ -3,51 +3,35 @@ import pandas as pd
 import altair as alt
 import os
 
-# 파일 경로 및 설정
+# 1. 페이지 설정 및 디자인 CSS
+st.set_page_config(layout="wide")
+st.markdown("""
+    <style>
+    .stApp { background-color: #F8F9FA; color: #2D3436; }
+    div[data-baseweb="input"], div[data-baseweb="base-input"] { background-color: #FFFFFF !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 2. 데이터 관리 함수 정의 (에러 방지 위해 맨 위에 배치)
 DATA_FILE = "data_v2.csv"
 GOAL_FILE = "goals.csv"
 GROUP_ORDER = ["자문회", "장년회", "부녀회", "청년회", "대학부"]
 
-st.set_page_config(layout="wide")
+def load_data():
+    if os.path.exists(DATA_FILE): return pd.read_csv(DATA_FILE)
+    return pd.DataFrame(columns=['날짜', '회', '재적', '상담', '복음방', '확답'])
 
-st.markdown("""
-    <style>
-    /* 전체 배경을 화사하고 밝은 톤으로 설정 */
-    .stApp {
-        background-color: #F8F9FA; 
-        color: #2D3436;
-    }
-    
-    /* 입력창(NumberInput) 배경을 밝은 흰색으로 변경 */
-    div[data-baseweb="input"], div[data-baseweb="base-input"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #DFE6E9 !important;
-    }
-    
-    /* 텍스트 색상 명확하게 지정 */
-    input, textarea, div {
-        color: #2D3436 !important;
-    }
-    
-    /* 데이터프레임 및 카드 스타일 */
-    .stDataFrame {
-        background-color: #FFFFFF;
-        padding: 10px;
-        border-radius: 10px;
-    }
-    
-    /* 탭 디자인 강조 */
-    button[data-baseweb="tab"] {
-        font-weight: 600 !important;
-        color: #636E72 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+def load_goals():
+    if os.path.exists(GOAL_FILE):
+        df = pd.read_csv(GOAL_FILE)
+        if '월' in df.columns: return df
+    return pd.DataFrame(columns=['월', '회', '목표'])
+
+# 3. 메인 화면 구성
 st.title("📊 확답 현황 관리 시스템")
-
 menu = st.tabs(["📝 데이터 입력", "📈 데이터 조회", "⚙️ 목표 설정"])
 
-# 1. 데이터 입력 탭
+# [탭 1: 데이터 입력]
 with menu[0]:
     st.subheader("데이터 입력/수정")
     with st.form("input_form"):
@@ -67,7 +51,7 @@ with menu[0]:
             df.to_csv(DATA_FILE, index=False)
             st.success("데이터가 반영되었습니다!")
 
-# 2. 데이터 조회 탭
+# [탭 2: 데이터 조회]
 with menu[1]:
     st.subheader("데이터 현황 조회")
     df = load_data()
@@ -94,7 +78,7 @@ with menu[1]:
         else:
             st.info("선택한 일자에 데이터가 없습니다.")
 
-# 3. 목표 설정 탭
+# [탭 3: 목표 설정]
 with menu[2]:
     st.subheader("월별 목표 설정")
     target_month = st.text_input("목표를 설정할 월 (예: 2026-07)")
