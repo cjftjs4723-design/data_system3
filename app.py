@@ -27,6 +27,40 @@ def load_goals():
     return pd.DataFrame(columns=['월', '회', '목표'])
 
 st.set_page_config(layout="wide")
+
+st.markdown("""
+    <style>
+    /* 전체 배경을 화사하고 밝은 톤으로 설정 */
+    .stApp {
+        background-color: #F8F9FA; 
+        color: #2D3436;
+    }
+    
+    /* 입력창(NumberInput) 배경을 밝은 흰색으로 변경 */
+    div[data-baseweb="input"], div[data-baseweb="base-input"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #DFE6E9 !important;
+    }
+    
+    /* 텍스트 색상 명확하게 지정 */
+    input, textarea, div {
+        color: #2D3436 !important;
+    }
+    
+    /* 데이터프레임 및 카드 스타일 */
+    .stDataFrame {
+        background-color: #FFFFFF;
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    /* 탭 디자인 강조 */
+    button[data-baseweb="tab"] {
+        font-weight: 600 !important;
+        color: #636E72 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 st.title("📊 확답 현황 관리 시스템")
 
 menu = st.tabs(["📝 데이터 입력", "📈 데이터 조회", "⚙️ 목표 설정"])
