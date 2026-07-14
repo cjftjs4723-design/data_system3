@@ -24,9 +24,15 @@ def load_data():
 
 def load_goals():
     if os.path.exists(GOAL_FILE):
-        # encoding='cp949'를 추가하여 한글 깨짐을 방지합니다
-        df = pd.read_csv(GOAL_FILE, encoding='cp949') 
-        return df.dropna(subset=['월'])
+        try:
+            # 파일이 비어있지 않을 때만 읽기 시도
+            if os.path.getsize(GOAL_FILE) > 0:
+                return pd.read_csv(GOAL_FILE, encoding='utf-8')
+            else:
+                return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
+        except Exception:
+            # 파일 읽기 실패 시 빈 데이터프레임 반환
+            return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
     return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
 
 def load_rejeok():
