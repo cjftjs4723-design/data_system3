@@ -174,10 +174,9 @@ with menu[2]:
 # 166번 줄부터 시작되는 with menu[3]: 부분을 아래 코드로 교체하세요
 with menu[3]:
     st.subheader("📝 센터 접수 기록")
-    r_month = st.text_input("날짜(월) 입력 (예: 2026-07)", key="r_month")
-    r_region = st.selectbox("지역", ["선택 안 함"] + REGION_ORDER, key="r_region")
-    r_center = st.selectbox("센터", ["선택 안 함", "일곡", "쌍암", "매곡", "신안"], key="r_center")
-    r_count = st.number_input("센터 접수 인원", min_value=0, step=1)
+    r_month = st.text_input("날짜(월) 입력 (예: 2026-07)", key="reception_month") # 수정
+    r_region = st.selectbox("지역", ["선택 안 함"] + REGION_ORDER, key="reception_region") # 수정
+    r_center = st.selectbox("센터", ["선택 안 함", "일곡", "쌍암", "매곡", "신안"], key="reception_center")
     
     if st.button("접수 정보 저장"):
         if "선택 안 함" in [r_region, r_center]:
