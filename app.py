@@ -212,13 +212,18 @@ with menu[2]:
                     table_data = group_data[['지역', '부서', '재적', '목표', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
                     
-                    # 2. 지역 병합 효과 처리를 위해 문자열 타입으로 변경
+                    # 2. 지역 병합 효과 처리 (첫 번째 행에만 지역 표시)
                     display_data = table_data.copy()
-                    display_data['지역'] = display_data['지역'].astype(str) 
+                    display_data['지역'] = display_data['지역'].astype(str)
                     
-                    for i in range(1, len(display_data)):
-                        if display_data.iloc[i, 0] == display_data.iloc[i-1, 0]:
-                            display_data.iloc[i, 0] = ""
+                    # 지역별로 첫 번째 행을 제외하고 나머지는 빈 문자열로 처리
+                    last_region = None
+                    for i in range(len(display_data)):
+                        current_region = display_data.iloc[i, 0]
+                        if current_region == last_region:
+                            display_data.iloc[i, 0] = "" # 이전 행과 같으면 지역명 지우기
+                        else:
+                            last_region = current_region # 새로운 지역이면 지역명 유지
                     
                     # 3. 표 출력
                     st.table(display_data.reset_index(drop=True))
