@@ -130,7 +130,7 @@ with menu[2]:
         g_region, g_department = "선택 안 함", "선택 안 함"
         st.selectbox("지역", [g_region], key="g_region_dummy", disabled=True)
         st.selectbox("부서", [g_department], key="g_dept_dummy", disabled=True)
-    target_hwkdap = st.number_input("목표 확답", min_value=0)
+    target_hwkdap = st.number_input("목표", min_value=0)
     
     if st.button("목표 저장"):
         if "선택 안 함" in [g_group, g_region, g_department]:
