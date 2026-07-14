@@ -377,7 +377,7 @@ with menu[6]:
                                     title='달성률(%)', 
                                     titleAngle=0, 
                                     titleAlign='right',
-                                    tickStep=10  # 눈금 간격을 10 단위로 설정
+                                    values=[i for i in range(0, 201, 10)] # 0부터 200까지 10 간격으로 눈금 지정
                                 ),
                                 scale=alt.Scale(domain=[0, 200])
                         )
