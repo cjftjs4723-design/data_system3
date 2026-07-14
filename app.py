@@ -202,8 +202,6 @@ with menu[2]:
                     total_rate = (total_current / total_goal * 100) if total_goal > 0 else 0
                     st.write(f"**{group} 합계 - 재적: {total_rejeok}명, 목표: {total_goal}명, 현재: {total_current}명 (전체 달성률: {total_rate:.1f}%)**")
                     st.write("---") # 구분을 위해 구분선 추가
-                # 월 열 제외하고 출력[cite: 1]
-                st.table(group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']])
 # 파일의 맨 마지막 부분
 # 165번 줄 아래에 추가
 # 166번 줄부터 시작되는 with menu[3]: 부분을 아래 코드로 교체하세요
