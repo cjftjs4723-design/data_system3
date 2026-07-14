@@ -6,12 +6,13 @@ DATA_FILE = "data_v2.csv"
 GOAL_FILE = "goals.csv"
 REJEOK_FILE = "rejeok.csv"
 ATTENDANCE_FILE = "attendance_data.csv" # 출석 데이터 파일 추가
+RECEPTION_FILE = "reception.csv"
 
 # 계층 구조 정의
 HIERARCHY = {
     "자문회": {"1지역": ["충성1부", "희락부", "믿음부", "승리부"], "2지역": ["창조부", "은혜1부", "은혜2부", "새가족부"]},
     "장년회": {"1지역": ["이김부", "기백부", "하나부", "완성부", "전승부"], "2지역": ["열매부", "진심부", "충성부", "일심부", "열정부"], "3지역": ["전진부", "합력부", "승리부", "소성부", "새신자부"], "기타지역": ["기타,총무"]},
-    "부녀회": {"천군지역": ["천군1부", "천군2부", "천군3부"], "필승지역": ["필승1부", "필승2부", "필승3부"], "순종지역": ["순종1부", "순종2부", "순종3부"], "전심지역": ["전심1부", "전심2부", "전심3부"], "소성지역": ["소성1부", "소성2부", "소성3부"], "최강지역": ["최강1부", "최강2부"], "새신자지역": ["새신자부"], "기타지역": ["기타,총무"]},
+    "부녀회": {"천군지역": ["천군1부", "천군2부", "천군3부"], "필승지역": ["필승1부", "필승2부", "필승3부"], "순종지역": ["순종1부", "순종2부", "순종3부"], "전심지역": ["전심1부", "전심2부", "전심3부"], "소성지역": ["소성1부", "소성2부", "소성3부"], "최강지역": ["최강1부", "최강2부", "새신자부"], "기타지역": ["기타,총무"]},
     "청년회": {"강철지역": ["강철1부", "강철2부", "강철3부", "강철4부"], "선봉지역": ["선봉1부", "선봉2부", "선봉3부", "선봉4부"], "진격지역": ["진격1부", "진격2부", "진격3부"], "새신자지역": ["새신자1부", "새신자2부"], "진심지역": ["진심2부", "진심3부"], "기타지역": ["기타,총무"]},
     "대학부": {"대학지역": ["연합대", "조선대1부", "조선대2부", "조선대3부", "조선대4부", "조선대5부"]}
 }
@@ -35,6 +36,11 @@ def load_attendance():
     if os.path.exists(ATTENDANCE_FILE): return pd.read_csv(ATTENDANCE_FILE)
     return pd.DataFrame(columns=['날짜', '지역', '센터', '수강인원'])
 
+def load_reception():
+    if os.path.exists(RECEPTION_FILE): return pd.read_csv(RECEPTION_FILE)
+    return pd.DataFrame(columns=['월', '지역', '센터', '접수인원'])
+
+REGION_ORDER = ["본부지역", "광산지역", "북구지역"]
 CENTER_HIERARCHY = {
     "본부지역": ["일곡"],
     "광산지역": ["쌍암"],
@@ -43,7 +49,7 @@ CENTER_HIERARCHY = {
 
 st.set_page_config(layout="wide")
 st.title("📊 본부지역 전도현황")
-menu = st.tabs(["데이터 입력", "재적 설정", "목표 설정", "출석 입력", "출석 결과"])
+menu = st.tabs(["데이터 입력", "재적 설정", "목표 설정", "센터 접수", "출석 입력", "출석 결과"])
 
 with menu[0]:
     st.subheader("📝일일보고")
@@ -164,8 +170,41 @@ with menu[2]:
             st.subheader("📋 부서 상세 목표 및 현황")
             st.table(merged[['월', '회', '지역', '부서', '재적', '목표확답', '현재확답']])
 # 파일의 맨 마지막 부분
-
+# 165번 줄 아래에 추가
+# 166번 줄부터 시작되는 with menu[3]: 부분을 아래 코드로 교체하세요
 with menu[3]:
+    st.subheader("📝 센터 접수 기록")
+    r_month = st.text_input("날짜(월) 입력 (예: 2026-07)", key="r_month")
+    r_region = st.selectbox("지역", ["선택 안 함"] + REGION_ORDER, key="r_region")
+    r_center = st.selectbox("센터", ["선택 안 함", "일곡", "쌍암", "매곡", "신안"], key="r_center")
+    r_count = st.number_input("센터 접수 인원", min_value=0, step=1)
+    
+    if st.button("접수 정보 저장"):
+        if "선택 안 함" in [r_region, r_center]:
+            st.error("지역과 센터를 선택해 주세요!")
+        else:
+            df = load_reception()
+            # 같은 월, 지역, 센터가 있으면 제거 후 덮어쓰기
+            mask = (df['월'] == r_month) & (df['지역'] == r_region) & (df['센터'] == r_center)
+            df = df[~mask]
+            new_row = {'월': r_month, '지역': r_region, '센터': r_center, '접수인원': r_count}
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            df.to_csv(RECEPTION_FILE, index=False)
+            st.success("접수 데이터 저장 완료!")
+    
+    st.write("---")
+    st.subheader("📋 월별 센터 접수 조회")
+    df = load_reception()
+    if not df.empty:
+        options = ["선택 안 함"] + sorted(df['월'].unique(), reverse=True)
+        selected_m = st.selectbox("조회할 월", options)
+        if selected_m != "선택 안 함":
+            filtered_df = df[df['월'] == selected_m]
+            pivot_df = filtered_df.pivot_table(index='지역', columns='센터', values='접수인원', aggfunc='sum', fill_value=0)
+            pivot_df = pivot_df.reindex(REGION_ORDER).fillna(0)
+            st.table(pivot_df.astype(int))
+
+with menu[4]:
     st.subheader("📝 센터 출석 입력")
     a_date = st.date_input("날짜", key="a_date")
     # 지역 선택
@@ -181,7 +220,7 @@ with menu[3]:
         df.to_csv(ATTENDANCE_FILE, index=False)
         st.success("출석 데이터 저장 완료!")
 
-with menu[4]:
+with menu[5]:
     st.subheader("📊 날짜별 지역 수강 현황")
     df = load_attendance()
     
