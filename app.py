@@ -29,11 +29,11 @@ def load_goals():
             if os.path.getsize(GOAL_FILE) > 0:
                 return pd.read_csv(GOAL_FILE, encoding='utf-8')
             else:
-                return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
+                return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표'])
         except Exception:
             # 파일 읽기 실패 시 빈 데이터프레임 반환
-            return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
-    return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
+            return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표'])
+    return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표'])
 
 def load_rejeok():
     if os.path.exists(REJEOK_FILE): return pd.read_csv(REJEOK_FILE)
@@ -141,7 +141,7 @@ with menu[2]:
             mask = (goals['월'] == target_month) & (goals['회'] == g_group) & (goals['지역'] == g_region) & (goals['부서'] == g_department)
             goals = goals[~mask]
             
-            new_goal = pd.DataFrame([{'월': target_month, '회': g_group, '지역': g_region, '부서': g_department, '목표확답': int(target_hwkdap)}])
+            new_goal = pd.DataFrame([{'월': target_month, '회': g_group, '지역': g_region, '부서': g_department, '목표': int(target_hwkdap)}])
             goals = pd.concat([goals, new_goal], ignore_index=True)
             goals.to_csv(GOAL_FILE, index=False)
             st.success("목표 저장 완료!")
@@ -172,10 +172,10 @@ with menu[2]:
             # 데이터 병합 및 달성률 계산
             merged = pd.merge(filtered_goals, rejeok_df, on=['회', '지역', '부서'], how='left')
             merged = pd.merge(merged, current, on=['회', '지역', '부서'], how='left')
-            merged[['재적', '현재확답', '목표확답']] = merged[['재적', '현재확답', '목표확답']].fillna(0).astype(int)
+            merged[['재적', '현재확답', '목표']] = merged[['재적', '현재확답', '목표']].fillna(0).astype(int)
             
             # 달성률 계산 (목표가 0이면 0%, 아니면 계산)
-            merged['달성률(%)'] = merged.apply(lambda x: (x['현재확답'] / x['목표확답'] * 100) if x['목표확답'] > 0 else 0, axis=1).round(1)
+            merged['달성률(%)'] = merged.apply(lambda x: (x['현재확답'] / x['목표'] * 100) if x['목표'] > 0 else 0, axis=1).round(1)
             
             # 회(자문회, 장년회 등)별로 나누어 출력[cite: 1]
             # 169번 줄부터 176번 줄까지 아래 코드로 교체하세요
@@ -206,13 +206,13 @@ with menu[2]:
                 # 2. 데이터가 있을 때만 출력 (이 안에서만 표가 나와야 합니다)
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
-                    table_data = group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']].copy()
+                    table_data = group_data[['지역', '부서', '재적', '목표', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
                     st.table(table_data.reset_index(drop=True))
                     
                     # 총합 출력
                     total_rejeok = group_data['재적'].sum()
-                    total_goal = group_data['목표확답'].sum()
+                    total_goal = group_data['목표'].sum()
                     total_current = group_data['현재확답'].sum()
                     total_rate = (total_current / total_goal * 100) if total_goal > 0 else 0
                     st.write(f"**{group} 합계 - 재적: {total_rejeok}명, 목표: {total_goal}명, 현재: {total_current}명 (전체 달성률: {total_rate:.1f}%)**")
