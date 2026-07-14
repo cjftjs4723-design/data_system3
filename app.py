@@ -181,28 +181,25 @@ with menu[2]:
             # 169번 줄부터 176번 줄까지 아래 코드로 교체하세요
            # 회(자문회, 장년회 등)별로 나누어 출력
             # 회(자문회, 장년회 등)별로 나누어 출력
+            # 수정해야 할 코드 구조의 예시입니다.
+            # 1. 회별 루프 시작
             for group in GROUP_ORDER:
                 if group == "선택 안 함": continue
                 
                 group_data = merged[merged['회'] == group]
                 
-                # 데이터가 실제로 있는 경우에만 출력 수행
+                # 2. 데이터가 있을 때만 출력 (이 안에서만 표가 나와야 합니다)
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
-                    
-                    # 1. 출력용 데이터 포맷팅
                     table_data = group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
-                    
-                    # 2. 표 출력 (인덱스 없이 출력)
                     st.table(table_data.reset_index(drop=True))
                     
-                    # 3. 회별 총합 계산 및 출력
+                    # 총합 출력
                     total_rejeok = group_data['재적'].sum()
                     total_goal = group_data['목표확답'].sum()
                     total_current = group_data['현재확답'].sum()
                     total_rate = (total_current / total_goal * 100) if total_goal > 0 else 0
-                    
                     st.write(f"**{group} 합계 - 재적: {total_rejeok}명, 목표: {total_goal}명, 현재: {total_current}명 (전체 달성률: {total_rate:.1f}%)**")
                     st.write("---") # 구분을 위해 구분선 추가
                 # 월 열 제외하고 출력[cite: 1]
