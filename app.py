@@ -378,11 +378,11 @@ with menu[6]:
                                 scale=alt.Scale(domain=[0, 200])),
                         color=alt.condition(
                             alt.datum['달성률(%)'] >= 100,
-                            alt.value('blue'), # 100% 이상 파란색
+                            alt.value('blue'),
                             alt.condition(
                                 alt.datum['달성률(%)'] >= 50,
-                                alt.value('orange'), # 50~99% 노란색(가독성을 위해 주황색 사용)
-                                alt.value('red')     # 0~49% 빨간색
+                                alt.value('orange'),
+                                alt.value('red')
                             )
                         )
                     )
