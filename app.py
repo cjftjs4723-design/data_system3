@@ -224,7 +224,7 @@ with menu[2]:
                         
                         # 해당 지역의 소계 계산
                         subtotal = {
-                            '지역': f"{region} 소계",
+                            '지역': "계",
                             '부서': "-",
                             '재적': region_df['재적'].sum(),
                             '목표': region_df['목표'].sum(),
