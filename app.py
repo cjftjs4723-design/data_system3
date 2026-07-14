@@ -188,15 +188,19 @@ with menu[2]:
                 
                 group_data = merged[merged['회'] == group]
                 
-                # 정의된 부서 순서(HIERARCHY)를 가져와서 정렬에 적용
+                # 1. 지역 순서 정의 (기타지역을 맨 뒤로 설정)
+                region_order = [r for r in HIERARCHY[group].keys() if r != "기타지역"] + ["기타지역"]
+                
+                # 2. 부서 순서 정의
                 dept_order = []
                 for reg in HIERARCHY[group].values():
                     dept_order.extend(reg)
                 
-                # 부서 열을 범주형(Categorical)으로 변환하여 순서 지정
+                # 3. 범주형 데이터 변환 및 정렬
+                group_data['지역'] = pd.Categorical(group_data['지역'], categories=region_order, ordered=True)
                 group_data['부서'] = pd.Categorical(group_data['부서'], categories=dept_order, ordered=True)
                 
-                # 지역순으로 먼저 정렬 후, 지정된 부서 순서로 정렬
+                # 4. 정의한 순서대로 정렬
                 group_data = group_data.sort_values(by=['지역', '부서'])
                 
                 # 2. 데이터가 있을 때만 출력 (이 안에서만 표가 나와야 합니다)
