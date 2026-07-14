@@ -144,31 +144,36 @@ with menu[2]:
 
     if not goals_df.empty:
         goals_df['월'] = goals_df['월'].astype(str)
-        selected_m = st.selectbox("조회할 월 선택", ["선택 안 함", "전체 조회"] + sorted(goals_df['월'].unique(), reverse=True))
+        selected_m = st.selectbox("조회할 월 선택", ["선택 안 함"] + sorted(goals_df['월'].unique(), reverse=True))
         
         if selected_m != "선택 안 함":
-            filtered_goals = goals_df if selected_m == "전체 조회" else goals_df[goals_df['월'] == selected_m]
+            st.subheader(f"📅 {selected_m} 부서 상세 목표 및 현황") # 월을 제목으로 출력
             
-            # 현재 확답 계산: 일별 누적이 아닌 최신 데이터 추출
+            filtered_goals = goals_df[goals_df['월'] == selected_m]
+            
+            # 현재 확답 계산
             if not data_df.empty and all(col in data_df.columns for col in ['회', '지역', '부서', '확답', '날짜']):
                 data_df['날짜'] = pd.to_datetime(data_df['날짜'])
-                data_df['월'] = data_df['날짜'].dt.strftime('%Y-%m')
-                
-                # 날짜순으로 정렬 후 가장 마지막 값(최신 데이터)을 가져옵니다[cite: 1]
-                data_df = data_df.sort_values(by='날짜') 
                 current = data_df.groupby(['회', '지역', '부서'])['확답'].last().reset_index().rename(columns={'확답': '현재확답'})
             else:
                 current = pd.DataFrame(columns=['회', '지역', '부서', '현재확답'])
             
-            # 데이터 병합[cite: 1]
+            # 데이터 병합 및 달성률 계산
             merged = pd.merge(filtered_goals, rejeok_df, on=['회', '지역', '부서'], how='left')
             merged = pd.merge(merged, current, on=['회', '지역', '부서'], how='left')
+            merged[['재적', '현재확답', '목표확답']] = merged[['재적', '현재확답', '목표확답']].fillna(0).astype(int)
             
-            # 결측치 처리 및 정수 변환[cite: 1]
-            merged[['재적', '현재확답']] = merged[['재적', '현재확답']].fillna(0).astype(int)
+            # 달성률 계산 (목표가 0이면 0%, 아니면 계산)
+            merged['달성률(%)'] = merged.apply(lambda x: (x['현재확답'] / x['목표확답'] * 100) if x['목표확답'] > 0 else 0, axis=1).round(1)
             
-            st.subheader("📋 부서 상세 목표 및 현황")
-            st.table(merged[['월', '회', '지역', '부서', '재적', '목표확답', '현재확답']])
+            # 회(자문회, 장년회 등)별로 나누어 출력[cite: 1]
+            for group in GROUP_ORDER:
+                if group == "선택 안 함": continue
+                group_data = merged[merged['회'] == group]
+                if not group_data.empty:
+                    st.markdown(f"#### 🏢 {group}")
+                    # 월 열 제외하고 출력[cite: 1]
+                    st.table(group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']])
 # 파일의 맨 마지막 부분
 # 165번 줄 아래에 추가
 # 166번 줄부터 시작되는 with menu[3]: 부분을 아래 코드로 교체하세요
@@ -177,6 +182,7 @@ with menu[3]:
     r_month = st.text_input("날짜(월) 입력 (예: 2026-07)", key="reception_month") # 수정
     r_region = st.selectbox("지역", ["선택 안 함"] + REGION_ORDER, key="reception_region") # 수정
     r_center = st.selectbox("센터", ["선택 안 함", "일곡", "쌍암", "매곡", "신안"], key="reception_center")
+    r_count = st.number_input("센터 접수 인원", min_value=0, step=1) # 이 줄을 추가하세요
     
     if st.button("접수 정보 저장"):
         if "선택 안 함" in [r_region, r_center]:
