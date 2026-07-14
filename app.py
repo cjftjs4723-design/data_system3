@@ -180,23 +180,24 @@ with menu[2]:
             # 회(자문회, 장년회 등)별로 나누어 출력[cite: 1]
             # 169번 줄부터 176번 줄까지 아래 코드로 교체하세요
            # 회(자문회, 장년회 등)별로 나누어 출력
+            # 회(자문회, 장년회 등)별로 나누어 출력
             for group in GROUP_ORDER:
                 if group == "선택 안 함": continue
                 
                 group_data = merged[merged['회'] == group]
                 
-                # 데이터가 있을 때만 출력 로직 수행
+                # 데이터가 실제로 있는 경우에만 출력 수행
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
                     
-                    # 출력용 데이터 포맷팅
+                    # 1. 출력용 데이터 포맷팅
                     table_data = group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
                     
-                    # 표 출력 (인덱스 제거)
+                    # 2. 표 출력 (인덱스 없이 출력)
                     st.table(table_data.reset_index(drop=True))
                     
-                    # 총합 계산 및 출력
+                    # 3. 회별 총합 계산 및 출력
                     total_rejeok = group_data['재적'].sum()
                     total_goal = group_data['목표확답'].sum()
                     total_current = group_data['현재확답'].sum()
