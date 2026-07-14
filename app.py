@@ -370,26 +370,27 @@ with menu[6]:
                         x=alt.X('부서', axis=alt.Axis(labelAngle=0))
                     )
                     
-                    # 1. 막대 그래프
+                    # 1. 막대 그래프 (색상 조건부 설정 추가)
                     bars = base.mark_bar().encode(
                         y=alt.Y('달성률(%)', 
-                                axis=alt.Axis(
-                                    title='달성률(%)', 
-                                    titleAngle=0, 
-                                    titleAlign='right',
-                                    values=[i for i in range(0, 201, 10)] # 0부터 200까지 10 간격으로 눈금 지정
-                                ),
-                                scale=alt.Scale(domain=[0, 200])
+                                axis=alt.Axis(title='달성률(%)', titleAngle=0, titleAlign='right', 
+                                              values=[i for i in range(0, 201, 10)]),
+                                scale=alt.Scale(domain=[0, 200])),
+                        color=alt.condition(
+                            alt.datum['달성률(%)'] >= 100,
+                            alt.value('blue'), # 100% 이상 파란색
+                            alt.condition(
+                                alt.datum['달성률(%)'] >= 50,
+                                alt.value('orange'), # 50~99% 노란색(가독성을 위해 주황색 사용)
+                                alt.value('red')     # 0~49% 빨간색
+                            )
                         )
                     )
                     
                     # 2. 막대 위 텍스트 표시
-                    text = base.mark_text(
-                        dy=-5, # 텍스트 위치 (막대 위쪽으로 약간 올림)
-                        color='white'
-                    ).encode(
+                    text = base.mark_text(dy=-5, color='white').encode(
                         y=alt.Y('달성률(%)', scale=alt.Scale(domain=[0, 200])),
-                        text=alt.Text('달성률(%)', format='.1f') # 수치를 소수점 첫째 자리까지 표시
+                        text=alt.Text('달성률(%)', format='.1f')
                     )
                     
                     # 막대와 텍스트 합쳐서 출력
