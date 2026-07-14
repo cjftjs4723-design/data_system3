@@ -324,3 +324,52 @@ with menu[5]:
         st.table(result_df)
     else:
         st.info("데이터가 없습니다.")
+
+with menu[6]:
+    st.subheader("📈 부서별 목표 달성률 그래프")
+    
+    goals_df = load_goals()
+    if not goals_df.empty:
+        # 조회할 월 선택
+        selected_m = st.selectbox("그래프 조회할 월 선택", sorted(goals_df['월'].unique(), reverse=True), key="graph_month")
+        
+        # 3번 탭의 병합 로직과 동일하게 데이터를 준비합니다
+        filtered_goals = goals_df[goals_df['월'] == selected_m]
+        data_df = load_data()
+        rejeok_df = load_rejeok()
+        
+        # 데이터 병합 (앞선 3번 탭 로직과 동일하게 유지)
+        if not data_df.empty:
+            data_df['날짜'] = pd.to_datetime(data_df['날짜'])
+            latest_data = data_df.groupby(['회', '지역', '부서']).last().reset_index()
+        else:
+            latest_data = pd.DataFrame(columns=['회', '지역', '부서', '상담', '복음방', '확답'])
+            
+        merged = pd.merge(filtered_goals, rejeok_df, on=['회', '지역', '부서'], how='left')
+        merged = pd.merge(merged, latest_data[['회', '지역', '부서', '상담', '복음방', '확답']], on=['회', '지역', '부서'], how='left')
+        merged[['재적', '목표', '상담', '복음방', '확답']] = merged[['재적', '목표', '상담', '복음방', '확답']].fillna(0).astype(int)
+        merged['달성률(%)'] = merged.apply(lambda x: (x['확답'] / x['목표'] * 100) if x['목표'] > 0 else 0, axis=1).round(1)
+        
+        # 각 회별로 그래프 생성
+        for group in GROUP_ORDER:
+            if group == "선택 안 함": continue
+            
+            group_data = merged[merged['회'] == group].copy()
+            if not group_data.empty:
+                st.markdown(f"### 🏢 {group}")
+                
+                # 순위별 정렬: 달성률 내림차순, 같으면 지정된 부서 순서
+                dept_order = []
+                for reg in HIERARCHY[group].values(): dept_order.extend(reg)
+                group_data['부서'] = pd.Categorical(group_data['부서'], categories=dept_order, ordered=True)
+                
+                # 달성률 높은 순(내림차순) -> 부서 순서 순으로 정렬
+                plot_data = group_data.sort_values(by=['달성률(%)', '부서'], ascending=[False, True])
+                
+                # Streamlit의 bar_chart는 정렬된 데이터프레임을 그대로 그립니다
+                # '부서'를 인덱스로 설정하고 '달성률(%)'만 출력
+                chart_data = plot_data.set_index('부서')[['달성률(%)']]
+                st.bar_chart(chart_data)
+                st.write("---")
+    else:
+        st.info("목표 데이터가 없습니다.")
