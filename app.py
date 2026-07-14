@@ -365,15 +365,35 @@ with menu[6]:
                     group_data['부서'] = pd.Categorical(group_data['부서'], categories=dept_order, ordered=True)
                     plot_data = group_data.sort_values(by=['달성률(%)', '부서'], ascending=[False, True])
                     
-                    # Altair 차트 생성
-                    chart = alt.Chart(plot_data).mark_bar().encode(
-                        x=alt.X('부서', axis=alt.Axis(labelAngle=0)), # x축 글씨 가로로
-                        y=alt.Y('달성률(%)', 
-                                axis=alt.Axis(title='달성률(%)', titleAngle=0, titleAlign='right'), # y축 라벨 가로
-                                scale=alt.Scale(domain=[0, 200]) # y축 범위 0~200
-                        )
-                    ).properties(height=300)
+                    # Altair 차트 생성 (막대 + 텍스트)
+                    base = alt.Chart(plot_data).encode(
+                        x=alt.X('부서', axis=alt.Axis(labelAngle=0))
+                    )
                     
+                    # 1. 막대 그래프
+                    bars = base.mark_bar().encode(
+                        y=alt.Y('달성률(%)', 
+                                axis=alt.Axis(
+                                    title='달성률(%)', 
+                                    titleAngle=0, 
+                                    titleAlign='right',
+                                    tickStep=10  # 눈금 간격을 10 단위로 설정
+                                ),
+                                scale=alt.Scale(domain=[0, 200])
+                        )
+                    )
+                    
+                    # 2. 막대 위 텍스트 표시
+                    text = base.mark_text(
+                        dy=-5, # 텍스트 위치 (막대 위쪽으로 약간 올림)
+                        color='white'
+                    ).encode(
+                        y=alt.Y('달성률(%)', scale=alt.Scale(domain=[0, 200])),
+                        text=alt.Text('달성률(%)', format='.1f') # 수치를 소수점 첫째 자리까지 표시
+                    )
+                    
+                    # 막대와 텍스트 합쳐서 출력
+                    chart = (bars + text).properties(height=300)
                     st.altair_chart(chart, use_container_width=True)
                     st.write("---")
     else:
