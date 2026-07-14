@@ -371,15 +371,16 @@ with menu[6]:
                     )
                     
                     # 1. 막대 그래프 (색상 조건부 설정 추가)
+                    # 1. 막대 그래프 (color 설정 부분을 아래와 같이 변경)
                     bars = base.mark_bar().encode(
                         y=alt.Y('달성률(%)', 
                                 axis=alt.Axis(title='달성률(%)', titleAngle=0, titleAlign='right', 
                                               values=[i for i in range(0, 201, 10)]),
                                 scale=alt.Scale(domain=[0, 200])),
-                        color=alt.expr.if_(
-                            alt.datum['달성률(%)'] >= 100, 'blue',
-                            alt.expr.if_(alt.datum['달성률(%)'] >= 50, 'orange', 'red')
-                        )
+                        color=alt.Color('달성률(%)', 
+                                        scale=alt.Scale(domain=[0, 50, 100], 
+                                                        range=['red', 'orange', 'blue']),
+                                        legend=None) # 범례가 필요 없으면 None
                     )
                     
                     # 2. 막대 위 텍스트 표시
