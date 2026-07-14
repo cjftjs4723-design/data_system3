@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import altair as alt # 파일 상단에 import altair 추가 필수!
 
 DATA_FILE = "data_v2.csv"
 GOAL_FILE = "goals.csv"
@@ -356,20 +357,24 @@ with menu[6]:
             
             group_data = merged[merged['회'] == group].copy()
             if not group_data.empty:
-                st.markdown(f"### 🏢 {group}")
-                
-                # 순위별 정렬: 달성률 내림차순, 같으면 지정된 부서 순서
-                dept_order = []
-                for reg in HIERARCHY[group].values(): dept_order.extend(reg)
-                group_data['부서'] = pd.Categorical(group_data['부서'], categories=dept_order, ordered=True)
-                
-                # 달성률 높은 순(내림차순) -> 부서 순서 순으로 정렬
-                plot_data = group_data.sort_values(by=['달성률(%)', '부서'], ascending=[False, True])
-                
-                # Streamlit의 bar_chart는 정렬된 데이터프레임을 그대로 그립니다
-                # '부서'를 인덱스로 설정하고 '달성률(%)'만 출력
-                chart_data = plot_data.set_index('부서')[['달성률(%)']]
-                st.bar_chart(chart_data)
-                st.write("---")
+                    st.markdown(f"### 🏢 {group}")
+                    
+                    # 데이터 정렬 (기존과 동일)
+                    dept_order = []
+                    for reg in HIERARCHY[group].values(): dept_order.extend(reg)
+                    group_data['부서'] = pd.Categorical(group_data['부서'], categories=dept_order, ordered=True)
+                    plot_data = group_data.sort_values(by=['달성률(%)', '부서'], ascending=[False, True])
+                    
+                    # Altair 차트 생성
+                    chart = alt.Chart(plot_data).mark_bar().encode(
+                        x=alt.X('부서', axis=alt.Axis(labelAngle=0)), # x축 글씨 가로로
+                        y=alt.Y('달성률(%)', 
+                                axis=alt.Axis(title='달성률(%)', titleAngle=0, titleAlign='right'), # y축 라벨 가로
+                                scale=alt.Scale(domain=[0, 200]) # y축 범위 0~200
+                        )
+                    ).properties(height=300)
+                    
+                    st.altair_chart(chart, use_container_width=True)
+                    st.write("---")
     else:
         st.info("목표 데이터가 없습니다.")
