@@ -204,19 +204,31 @@ with menu[2]:
                 group_data = group_data.sort_values(by=['지역', '부서'])
                 
                 # 2. 데이터가 있을 때만 출력 (이 안에서만 표가 나와야 합니다)
+                # 192번 줄 근처의 표 출력 로직을 아래와 같이 수정하세요.
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
+                    
+                    # 1. 출력용 데이터 포맷팅
                     table_data = group_data[['지역', '부서', '재적', '목표', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
-                    st.table(table_data.reset_index(drop=True))
                     
-                    # 총합 출력
+                    # 2. 지역 병합 효과: 이전 행과 지역이 같으면 빈 문자열로 변경
+                    display_data = table_data.copy()
+                    for i in range(1, len(display_data)):
+                        if display_data.iloc[i, 0] == display_data.iloc[i-1, 0]:
+                            display_data.iloc[i, 0] = ""
+                    
+                    # 3. 셀 병합 효과가 적용된 데이터를 출력
+                    st.table(display_data.reset_index(drop=True))
+                    
+                    # 4. 총합 계산 및 출력 (기존과 동일)
                     total_rejeok = group_data['재적'].sum()
                     total_goal = group_data['목표'].sum()
                     total_current = group_data['현재확답'].sum()
                     total_rate = (total_current / total_goal * 100) if total_goal > 0 else 0
+                    
                     st.write(f"**{group} 합계 - 재적: {total_rejeok}명, 목표: {total_goal}명, 현재: {total_current}명 (전체 달성률: {total_rate:.1f}%)**")
-                    st.write("---") # 구분을 위해 구분선 추가
+                    st.write("---")
 # 파일의 맨 마지막 부분
 # 165번 줄 아래에 추가
 # 166번 줄부터 시작되는 with menu[3]: 부분을 아래 코드로 교체하세요
