@@ -130,6 +130,10 @@ with menu[2]:
             st.error("회, 지역, 부서를 모두 선택해 주세요!")
         else:
             goals = load_goals()
+            # 같은 조건의 기존 데이터 삭제 (덮어쓰기)
+            mask = (goals['월'] == target_month) & (goals['회'] == g_group) & (goals['지역'] == g_region) & (goals['부서'] == g_department)
+            goals = goals[~mask]
+            
             new_goal = pd.DataFrame([{'월': target_month, '회': g_group, '지역': g_region, '부서': g_department, '목표확답': int(target_hwkdap)}])
             goals = pd.concat([goals, new_goal], ignore_index=True)
             goals.to_csv(GOAL_FILE, index=False)
@@ -171,13 +175,16 @@ with menu[2]:
             for group in GROUP_ORDER:
                 if group == "선택 안 함": continue
                 group_data = merged[merged['회'] == group]
+                # for 루프 내부의 table 출력 부분만 아래처럼 수정하세요
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
                     
-                    # 출력용 데이터 포맷팅
+                    # 출력용 데이터 포맷팅 (인덱스 제거를 위해 reset_index 사용)
                     table_data = group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
-                    st.table(table_data)
+                    
+                    # 표 출력 시 index=False와 유사한 효과를 위해 인덱스 리셋 후 출력
+                    st.table(table_data.reset_index(drop=True)) 
                     
                     # 총합 계산 및 출력
                     total_rejeok = group_data['재적'].sum()
