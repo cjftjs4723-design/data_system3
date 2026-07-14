@@ -376,14 +376,9 @@ with menu[6]:
                                 axis=alt.Axis(title='달성률(%)', titleAngle=0, titleAlign='right', 
                                               values=[i for i in range(0, 201, 10)]),
                                 scale=alt.Scale(domain=[0, 200])),
-                        color=alt.condition(
-                            alt.datum['달성률(%)'] >= 100,
-                            alt.value('blue'),
-                            alt.condition(
-                                alt.datum['달성률(%)'] >= 50,
-                                alt.value('orange'),
-                                alt.value('red')
-                            )
+                        color=alt.expr.if_(
+                            alt.datum['달성률(%)'] >= 100, 'blue',
+                            alt.expr.if_(alt.datum['달성률(%)'] >= 50, 'orange', 'red')
                         )
                     )
                     
