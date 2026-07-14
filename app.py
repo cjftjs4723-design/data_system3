@@ -167,13 +167,28 @@ with menu[2]:
             merged['달성률(%)'] = merged.apply(lambda x: (x['현재확답'] / x['목표확답'] * 100) if x['목표확답'] > 0 else 0, axis=1).round(1)
             
             # 회(자문회, 장년회 등)별로 나누어 출력[cite: 1]
+            # 169번 줄부터 176번 줄까지 아래 코드로 교체하세요
             for group in GROUP_ORDER:
                 if group == "선택 안 함": continue
                 group_data = merged[merged['회'] == group]
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
-                    # 월 열 제외하고 출력[cite: 1]
-                    st.table(group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']])
+                    
+                    # 출력용 데이터 포맷팅
+                    table_data = group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']].copy()
+                    table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
+                    st.table(table_data)
+                    
+                    # 총합 계산 및 출력
+                    total_rejeok = group_data['재적'].sum()
+                    total_goal = group_data['목표확답'].sum()
+                    total_current = group_data['현재확답'].sum()
+                    total_rate = (total_current / total_goal * 100) if total_goal > 0 else 0
+                    
+                    st.write(f"**{group} 합계 - 재적: {total_rejeok}명, 목표: {total_goal}명, 현재: {total_current}명 (전체 달성률: {total_rate:.1f}%)**")
+                    st.write("---") # 구분을 위해 구분선 추가
+                # 월 열 제외하고 출력[cite: 1]
+                st.table(group_data[['지역', '부서', '재적', '목표확답', '현재확답', '달성률(%)']])
 # 파일의 맨 마지막 부분
 # 165번 줄 아래에 추가
 # 166번 줄부터 시작되는 with menu[3]: 부분을 아래 코드로 교체하세요
