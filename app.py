@@ -163,19 +163,22 @@ with menu[2]:
             filtered_goals = goals_df[goals_df['월'] == selected_m]
             
             # 현재 확답 계산
-            if not data_df.empty and all(col in data_df.columns for col in ['회', '지역', '부서', '확답', '날짜']):
+           # 1. 일일 데이터에서 최신 상담, 복음방, 확답 값을 가져옵니다.
+            if not data_df.empty:
                 data_df['날짜'] = pd.to_datetime(data_df['날짜'])
-                current = data_df.groupby(['회', '지역', '부서'])['확답'].last().reset_index().rename(columns={'확답': '현재확답'})
+                latest_data = data_df.groupby(['회', '지역', '부서']).last().reset_index()
             else:
-                current = pd.DataFrame(columns=['회', '지역', '부서', '현재확답'])
-            
-            # 데이터 병합 및 달성률 계산
+                latest_data = pd.DataFrame(columns=['회', '지역', '부서', '상담', '복음방', '확답'])
+
+            # 2. 목표, 재적, 일일 데이터를 하나로 병합
             merged = pd.merge(filtered_goals, rejeok_df, on=['회', '지역', '부서'], how='left')
-            merged = pd.merge(merged, current, on=['회', '지역', '부서'], how='left')
-            merged[['재적', '현재확답', '목표']] = merged[['재적', '현재확답', '목표']].fillna(0).astype(int)
+            merged = pd.merge(merged, latest_data[['회', '지역', '부서', '상담', '복음방', '확답']], on=['회', '지역', '부서'], how='left')
             
-            # 달성률 계산 (목표가 0이면 0%, 아니면 계산)
-            merged['달성률(%)'] = merged.apply(lambda x: (x['현재확답'] / x['목표'] * 100) if x['목표'] > 0 else 0, axis=1).round(1)
+            # 3. 결측치 처리 (데이터가 없는 경우 0으로 채움)
+            merged[['재적', '목표', '상담', '복음방', '확답']] = merged[['재적', '목표', '상담', '복음방', '확답']].fillna(0).astype(int)
+            
+            # 4. 달성률 계산
+            merged['달성률(%)'] = merged.apply(lambda x: (x['확답'] / x['목표'] * 100) if x['목표'] > 0 else 0, axis=1).round(1)
             
             # 회(자문회, 장년회 등)별로 나누어 출력[cite: 1]
             # 169번 줄부터 176번 줄까지 아래 코드로 교체하세요
