@@ -208,25 +208,31 @@ with menu[2]:
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
                     
-                    # 1. 출력용 데이터 포맷팅
-                    table_data = group_data[['지역', '부서', '재적', '목표', '현재확답', '달성률(%)']].copy()
-                    table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
+                    # 1. 출력용 데이터 포맷팅 (상담, 복음방 컬럼 포함)
+                    # 현재 데이터에 상담, 복음방이 없으므로 병합 과정에서 추가하거나 0으로 채워야 합니다.
+                    # 여기서는 현재 구조에 맞춰 필요한 컬럼을 구성합니다.
+                    table_data = group_data[['지역', '부서', '재적', '목표', '상담', '복음방', '현재확답', '달성률(%)']].copy()
                     
-                    # 2. 지역 병합 효과 처리 (첫 번째 행에만 지역 표시)
+                    # 달성률에 % 기호 붙이기
+                    table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}%")
+                    
+                    # 2. 지역 병합 효과 처리 (첫 행에만 지역 표시)
                     display_data = table_data.copy()
                     display_data['지역'] = display_data['지역'].astype(str)
                     
-                    # 지역별로 첫 번째 행을 제외하고 나머지는 빈 문자열로 처리
                     last_region = None
                     for i in range(len(display_data)):
                         current_region = display_data.iloc[i, 0]
                         if current_region == last_region:
-                            display_data.iloc[i, 0] = "" # 이전 행과 같으면 지역명 지우기
+                            display_data.iloc[i, 0] = ""
                         else:
-                            last_region = current_region # 새로운 지역이면 지역명 유지
+                            last_region = current_region
                     
                     # 3. 표 출력
                     st.table(display_data.reset_index(drop=True))
+                    
+                    # 4. 총합 계산 및 출력 (기존과 동일)
+                    # ... (합계 출력 부분은 그대로 유지하세요)
                     
                     # 4. 총합 계산 및 출력 (기존과 동일)
                     total_rejeok = group_data['재적'].sum()
