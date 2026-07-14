@@ -56,7 +56,7 @@ CENTER_HIERARCHY = {
 
 st.set_page_config(layout="wide")
 st.title("📊 본부지역 전도현황")
-menu = st.tabs(["데이터 입력", "재적 설정", "목표 설정", "센터 접수", "출석 입력", "출석 결과"])
+menu = st.tabs(["데이터 입력", "재적 설정", "목표 설정", "센터 접수", "출석 입력", "출석 결과", "목표 달성 그래프"])
 
 with menu[0]:
     st.subheader("📝일일보고")
