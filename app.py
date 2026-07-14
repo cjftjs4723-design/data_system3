@@ -211,31 +211,49 @@ with menu[2]:
                 if not group_data.empty:
                     st.markdown(f"#### 🏢 {group}")
                     
-                    # 1. 출력용 데이터 포맷팅 (상담, 복음방 컬럼 포함)
-                    # 현재 데이터에 상담, 복음방이 없으므로 병합 과정에서 추가하거나 0으로 채워야 합니다.
-                    # 여기서는 현재 구조에 맞춰 필요한 컬럼을 구성합니다.
+                    # 1. 출력용 데이터 구성
                     table_data = group_data[['지역', '부서', '재적', '목표', '상담', '복음방', '확답', '달성률(%)']].copy()
                     
-                    # 달성률에 % 기호 붙이기
-                    table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}%")
+                    # 2. 지역별 소계 계산 및 추가
+                    rows = []
+                    # 지역 순서대로 정렬된 상태를 유지하며 루프
+                    for region, region_df in table_data.groupby('지역', sort=False):
+                        # 원래 부서 데이터 추가
+                        for _, row in region_df.iterrows():
+                            rows.append(row)
+                        
+                        # 해당 지역의 소계 계산
+                        subtotal = {
+                            '지역': f"{region} 소계",
+                            '부서': "-",
+                            '재적': region_df['재적'].sum(),
+                            '목표': region_df['목표'].sum(),
+                            '상담': region_df['상담'].sum(),
+                            '복음방': region_df['복음방'].sum(),
+                            '확답': region_df['확답'].sum(),
+                            '달성률(%)': (region_df['확답'].sum() / region_df['목표'].sum() * 100) if region_df['목표'].sum() > 0 else 0
+                        }
+                        rows.append(pd.Series(subtotal))
                     
-                    # 2. 지역 병합 효과 처리 (첫 행에만 지역 표시)
-                    display_data = table_data.copy()
+                    display_data = pd.DataFrame(rows)
+                    display_data['달성률(%)'] = display_data['달성률(%)'].apply(lambda x: f"{x:.1f}%")
+                    
+                    # 3. 지역 병합 효과 처리
                     display_data['지역'] = display_data['지역'].astype(str)
-                    
                     last_region = None
                     for i in range(len(display_data)):
                         current_region = display_data.iloc[i, 0]
-                        if current_region == last_region:
+                        # 소계 행이 아니고, 이전 행과 같은 지역명이라면 지역명 지우기
+                        if "소계" not in current_region and current_region == last_region:
                             display_data.iloc[i, 0] = ""
                         else:
                             last_region = current_region
                     
-                    # 3. 표 출력
+                    # 4. 표 출력
                     st.table(display_data.reset_index(drop=True))
                     
-                    # 4. 총합 계산 및 출력 (기존과 동일)
-                    # ... (합계 출력 부분은 그대로 유지하세요)
+                    # 5. [선택] 전체 합계 출력 (원하시면 유지, 아니면 삭제)
+                    # (기존에 작성하셨던 'group 합계' 출력 코드가 있다면 여기 아래에 두시면 됩니다.)
                     
                     # 4. 총합 계산 및 출력 (기존과 동일)
                     total_rejeok = group_data['재적'].sum()
