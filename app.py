@@ -212,13 +212,15 @@ with menu[2]:
                     table_data = group_data[['지역', '부서', '재적', '목표', '현재확답', '달성률(%)']].copy()
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}")
                     
-                    # 2. 지역 병합 효과: 이전 행과 지역이 같으면 빈 문자열로 변경
+                    # 2. 지역 병합 효과 처리를 위해 문자열 타입으로 변경
                     display_data = table_data.copy()
+                    display_data['지역'] = display_data['지역'].astype(str) 
+                    
                     for i in range(1, len(display_data)):
                         if display_data.iloc[i, 0] == display_data.iloc[i-1, 0]:
                             display_data.iloc[i, 0] = ""
                     
-                    # 3. 셀 병합 효과가 적용된 데이터를 출력
+                    # 3. 표 출력
                     st.table(display_data.reset_index(drop=True))
                     
                     # 4. 총합 계산 및 출력 (기존과 동일)
