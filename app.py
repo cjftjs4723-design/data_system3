@@ -214,7 +214,7 @@ with menu[2]:
                     # 1. 출력용 데이터 포맷팅 (상담, 복음방 컬럼 포함)
                     # 현재 데이터에 상담, 복음방이 없으므로 병합 과정에서 추가하거나 0으로 채워야 합니다.
                     # 여기서는 현재 구조에 맞춰 필요한 컬럼을 구성합니다.
-                    table_data = group_data[['지역', '부서', '재적', '목표', '상담', '복음방', '현재확답', '달성률(%)']].copy()
+                    table_data = group_data[['지역', '부서', '재적', '목표', '상담', '복음방', '확답', '달성률(%)']].copy()
                     
                     # 달성률에 % 기호 붙이기
                     table_data['달성률(%)'] = table_data['달성률(%)'].apply(lambda x: f"{x:.1f}%")
@@ -240,7 +240,7 @@ with menu[2]:
                     # 4. 총합 계산 및 출력 (기존과 동일)
                     total_rejeok = group_data['재적'].sum()
                     total_goal = group_data['목표'].sum()
-                    total_current = group_data['현재확답'].sum()
+                    total_current = group_data['확답'].sum()
                     total_rate = (total_current / total_goal * 100) if total_goal > 0 else 0
                     
                     st.write(f"**{group} 합계 - 재적: {total_rejeok}명, 목표: {total_goal}명, 현재: {total_current}명 (전체 달성률: {total_rate:.1f}%)**")
