@@ -24,7 +24,8 @@ def load_data():
 
 def load_goals():
     if os.path.exists(GOAL_FILE):
-        df = pd.read_csv(GOAL_FILE)
+        # encoding='cp949'를 추가하여 한글 깨짐을 방지합니다
+        df = pd.read_csv(GOAL_FILE, encoding='cp949') 
         return df.dropna(subset=['월'])
     return pd.DataFrame(columns=['월', '회', '지역', '부서', '목표확답'])
 
