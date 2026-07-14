@@ -187,6 +187,16 @@ with menu[2]:
                 if group == "선택 안 함": continue
                 
                 group_data = merged[merged['회'] == group]
+                
+                # 정의된 부서 순서(HIERARCHY)를 가져와서 정렬에 적용
+                dept_order = []
+                for reg in HIERARCHY[group].values():
+                    dept_order.extend(reg)
+                
+                # 부서 열을 범주형(Categorical)으로 변환하여 순서 지정
+                group_data['부서'] = pd.Categorical(group_data['부서'], categories=dept_order, ordered=True)
+                
+                # 지역순으로 먼저 정렬 후, 지정된 부서 순서로 정렬
                 group_data = group_data.sort_values(by=['지역', '부서'])
                 
                 # 2. 데이터가 있을 때만 출력 (이 안에서만 표가 나와야 합니다)
