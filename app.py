@@ -187,6 +187,7 @@ with menu[2]:
                 if group == "선택 안 함": continue
                 
                 group_data = merged[merged['회'] == group]
+                group_data = group_data.sort_values(by=['지역', '부서'])
                 
                 # 2. 데이터가 있을 때만 출력 (이 안에서만 표가 나와야 합니다)
                 if not group_data.empty:
